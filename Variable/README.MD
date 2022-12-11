@@ -18,7 +18,7 @@
 
 <div style={display:flex}>
 
-변수 할당 과정
+변수 할당 과정<br />
 ![image](../image/2.png)
 
 메모리
