@@ -19,10 +19,10 @@
 <div style={display:flex}>
 
 > 변수 할당 과정
-> ![image](../image/2.png)
+![image](../image/2.png)
 
 > 메모리
-> ![image](../image/%EB%A9%94%EB%AA%A8%EB%A6%AC.png)
+![image](../image/%EB%A9%94%EB%AA%A8%EB%A6%AC.png)
 
 </div>
 - 데이터를 저장할 수 있는 메모리 셀의 집합체, 메모리 셀의 하나의 크기 : `1byte(8bit)`
