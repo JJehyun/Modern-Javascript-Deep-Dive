@@ -18,10 +18,10 @@
 
 <div style={display:flex}>
 
-> 변수 할당 과정
+변수 할당 과정
 ![image](../image/2.png)
 
-> 메모리
+메모리
 ![image](../image/%EB%A9%94%EB%AA%A8%EB%A6%AC.png)
 
 </div>
