@@ -2,7 +2,7 @@
 
 ![image](./image/12.png)<br />
 
-이거 136p까지
+이거 359p까지
 ..
 🎯💡🔥📌✅
 =======
@@ -30,3 +30,6 @@
 | 프로토타입                  | `상속` , `프로토타입` , `__proto__` , 추상연산 , 프로토 타입의 생성 시점 , `Object.create 메서드` , 프로토 타입 체인 , 오버라이딩 , `Object.keys()`,`Object.values()` , `Object.entries()`                               |
 | strict mode                 | `strict mode` 적용 , `strict mode` 적용 시 유의할 점 , `strict mode`가 발생 시키는 에러 , `strict mode` 적용에 의한 변화 2가지                                                                                           |
 | 빌트인 객체                 | 문자열을 객체처럼 사용할 수 있는 이유 (`래퍼 객체`), 발트인 객체 (`String`, `Number`, `Boolean` , `Symbol`...) , 전역 객체의 메서드(`parseInt`, `encodeURI`,`decodeURI`..) , 전역 객체의 프로퍼티(`Infinity` , `NaN`...) |
+| This                        | 함수 호출 방식에 따른 this 바인딩 , `this 바인딩` , `apply`,`call`,`bind` 이용한 this 값 변경                                                                                                                            |
+| 실행 컨텍스트               | `자바스크립트 동작 원리 핵심` ,실행 컨텍스트의 역할 , 렉시컬 환경(`식별자`를 등록하고 `관리`하는 저장소 역할) , 실행 컨텍스트 스택                                                                                       |
+| 클로저                      |                                                                                                                                                                                                                          |
