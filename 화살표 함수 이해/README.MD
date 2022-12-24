@@ -38,7 +38,7 @@ obj.foo();
 
 # 메서드
 
-- `ES6` 메서드는 메서드 푹약 표현으로 정의된 함수만을 의미한다.
+- `ES6` 메서드는 메서드 축약 표현으로 정의된 함수만을 의미한다.
 - `ES6` 메서드는 인스턴스를 생성할 수 없는 `non-contructor`이다.
 - `메서드는 생성자 함수로 호출할 수 없다.`
 
@@ -451,4 +451,128 @@ function foo(x, ...rest) {}
 console.log(foo.length); // 1
 function foo(x, y, ...rest) {}
 console.log(foo.length); // 2
+```
+
+<br />
+<br />
+<br />
+<br />
+
+---
+
+# Rest 파라미터와 arguments 객체
+
+- `arguments` 객체는 함수 호출 시 전달된 인수들의 정보를 담고 있는 순회 가능한 `유사 배열 객체`이며, 함수 내부에서 `지역 변수`처럼 사용될 수 있다.
+
+```
+✅ arguments 객체는 배열X , 유사 배열 객체이므로, 배열 메서드를 사용하기 위해서
+    call,apply 메서드를 이용해서 argument 유사 배열 객체를 배열로 변환 해야 한다.
+
+✅ Rest 파라미터를 사용하면 가변 인자 함수의 인수 목록을 배열로 직접 전달 받을 수 있다.
+   이를 통해 유사배열 객체(argument)를 배열로 변환하는 번거로움을 피할 수 있다.
+
+✅ 함수와 ES6 메서드는 Rest파라미터, arguments 객체 모두 사용 가능
+
+✅ 화살표 함수는 arguements를 가지지 않는다. 화살표 함수로 가변 인자 함수를
+   구현해야할 때는 반드시 Rest파라미터를 사용 해야 한다.
+```
+
+<br />
+
+> (1) arguments 객체 예시
+
+```js
+function sum{
+  console.log(arguments)
+}
+sum(1,2)  // {`0`:1, `1`:2 , length:2}
+```
+
+<br />
+
+> (2) arguments 유사 배열 객체 -> 배열로 변경(call) -> 고차함수 사용
+
+```js
+function sum() {
+  //유사 배열 객체 arguments 객체를 배열로 변환한다.
+  let array = Array.prototype.slice.call(arguments);
+
+  return array.reduce(function (pre, cur) {
+    return pre + cur;
+  }, 0);
+}
+
+console.log(sum(1, 2, 3, 4, 5)); //15
+```
+
+<br />
+
+> (3) Rest 파라미터로 가변 인자 함수의 인수 목록을 배열로 직접 전달받는 예시
+
+```js
+function sum(...rest) {
+  //Rest 파라미터로 전달 받으면 유사배열 객체가 아님. 때문에 고차 함수 바로 사용가능
+  //arguments 객체로 전달받는것보다 편리함(고차 함수 사용 하려면 call, apply로
+  //배열로 변환해야함)
+  return rest.reduce((pre, cur) => pre + cur, 0);
+}
+console.log(sum(1, 2, 3, 4, 5)); //15
+```
+
+<br />
+<br />
+<br />
+<br />
+
+---
+
+# 매개변수 기본 값
+
+- 자바스크립트 엔진은 `매개변수의 개수`와 `인수의 개수`를 체크하지 않는다.
+- 인수가 전달되지 않은 매개변수의 값은 `undefined`이고, `의도치` 않은 결과가 나올 수 있다.
+
+```js
+function (x,y){
+  return x+y
+}
+console.log(sum(1))//undefined
+```
+
+<br />
+<br />
+
+> 매개변수 에러 방어코드 (1)
+
+```js
+function sum(1,2){
+  x = x || 0;
+  y = y || 0;
+
+  return x + y
+}
+console.log(sum(1,2));  //3
+console.log(sum(1));    //1
+```
+
+> 매개변수 에러 방어코드 (2)
+
+```js
+function sum(x = 0, y = 0) {
+  return x + y;
+}
+console.log(sum(1, 2)); //3
+console.log(sum(1)); //1
+```
+
+> 매개변수 에러 방어코드 (3)
+
+```js
+function sum(x, y = 0) {
+  console.log(arguments);
+}
+
+console.log(sum.length); // 1
+
+sum(1); // Arguments {`0`:1}
+sum(1, 2); //Arguements {`0`:1, `1`:2}
 ```
