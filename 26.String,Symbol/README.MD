@@ -603,3 +603,101 @@ const Direction = {
   RIGHT: Symbol("right"),
 };
 ```
+
+<br />
+<br />
+<br />
+
+---
+
+# Symbol과 프로퍼티 키
+
+- `유일 무의한 프로퍼티 키값 생성가능`
+  - `for...in`, `Objects.keys` 메서드로 찾을 수 없어서 프로퍼티를 `은닉`할 수 있다.
+- 객체의 프로퍼티 키는 빈 문자열을 포함하는 `모든 문자열` 또는 `심벌 값`으로 만들 수 있다.
+  - 심벌 값을 프로퍼티 키로 사용하려면 프로퍼티 키로 사용할 심벌 값에 `대괄호`를 사용 해야 한다.
+
+<br />
+
+> 예제코드
+
+```js
+// 심벌은 유일무이한 값으로 심벌 값으로 프로퍼티 키를 만들면 다른 프로퍼티 키와 절대 충돌하지 않는다.
+const obj = {
+  [Symbol.for("mySymbol")]: 1,
+};
+obj[Symbol.for("mySymbol")];
+```
+
+<br />
+<br />
+<br />
+
+---
+
+# Symbol 과 빌트인 객체 확장
+
+```
+💡 일반적으로 표준 빌트인 객체에 사용자 정의 메서드를 직접 추가하는 것은 권장하지 않는다. (미래의 표준 사양 메서드와 중복될 수 있기 때문)
+
+💡 하지만, 중복될 가능성이 없는 심벌 값으로 프로퍼티 키 값을 생성하여 객체를 확장하면 어떤 프로퍼티 키와도 충돌하지 않기 때문에 안전하게 확장이 가능하다.
+```
+
+<br />
+
+```js
+// Array 표준 빌트인 객체에 메서드를 추가하여 확장하는 것 => 권장 X
+Array.prototype.sum = function () {
+  return this.reduce((acc, cur) => acc + cur, 0);
+}[(1, 2, 3)].sum(); // 6
+
+// 심벌 값으로 프로퍼티 키를 갖는 메서드로 확장하는 경우 => 호환성 측면에서 O
+Array.prototype[Symbol.for("sum")] = function () {
+  return this.reduce((acc, cur) => acc + cur, 0);
+}[
+  // 단, 호출 시에 어색한 상황이 연출
+  (1, 2, 3)
+][Symbol.for("sum")](); // 6
+```
+
+<br />
+<br />
+<br />
+
+---
+
+# Well-known Symbol
+
+<br />
+
+```
+💡 자바스크립트가 기본 제공하는 빌트인 심벌 값을 ECMAScript 사양에서는 Well-known Symbol 이라 부른다. (자바스크립트 내부 알고리즘에 사용됨)
+```
+
+- `for - of` 문으로 순회 가능한 이터러블은 `Well-known Symbol` 인 `Symbol.iterator`를 키로 갖는 메서드를 가진다.
+  - `Symbol.iterator 메서드를 호출 → 이터레이터를 반환 ( 이터레이션 프로토콜 )`
+- 만약, 일반 객체를 이터러블처럼 동작하도록 구현하고 싶다면 이터레이션 프로토콜을 따르면 된다.
+  - 즉, Symbol.iterator 를 키로 갖는 메서드를 객체에 추가하고 이터레이터를 반환하도록 구현하면, 그 객체를 이터러블이 된다.
+
+> 예제 코드
+
+```js
+const iterable = {
+  // Symbol.itertor 메서드를 구현하여 이터러블 프로토콜을 준수
+  [Symbol.iterator]() {
+    let cur = 1;
+    const max = 5;
+
+    // Symbol.iterator 메서드는 next 메서드를 소유한 이터레이터를 반환해야 한다.
+    return {
+      next() {
+        return { value: cur++, done: cur > max + 1 };
+      },
+    };
+  },
+};
+
+for (const num of iterable) {
+  console.log(num); // 1 2 3 4 5
+}
+```
