@@ -45,4 +45,10 @@
 | (28) Set과 Map                           | Set (중복되지 않는 배열) prototype 메서드 , Map (중복된 키가 없는 객체) prototype 메서드                                                                                                                                 |
 | (29) 브라우저 렌더링 과정                | `DOM , CSSOM 생성` , async/defer , 렌더 트리                                                                                                                                                                             |
 | (30) 타이머                              | `타이머 함수` (setTimeout / clearTimeout) , (setTimeout / clearTimeout) 개념, `디바운스` , `스로틀`(짧은 시간 연속해서 발생하는 이벤트를 일정 시간 묶어서 한번에 이벤트 처리)                                            |
-| (31) 비동기 프로그래밍                   | 아직                                                                                                                                                                                                                     |
+| (31) 비동기 프로그래밍                   | 동기와 비동기 , `이벤트 루프`와 `태스크 큐` , 콜 스택                                                                                                                                                                    |
+
+<br />
+<br />
+<br />
+
+![image](./image/toto.png)<br />
