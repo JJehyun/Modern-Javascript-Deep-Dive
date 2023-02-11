@@ -151,3 +151,89 @@ const pharaoh = {
 
 - 위 예시 타입 추론 <`유니온 타입으로 타입 추론`>
 - ![image](../../image/t1300.png)
+
+<br />
+<br />
+
+# 일관성 있는 별칭 사용하기
+
+```
+🔥요약🔥
+✅별칭은 타입스크립트가 타입을 좁히는 것을 방해합니다. 따라서 변수에 별칭을 사용할 때는 일관되게 사용 해야 한다.
+
+✅비구조화 문법을 사용해서 일관된 이름을 사용하는 것이 좋다.
+
+✅함수 호출이 객체 속성의 타입 정제를 무효화할 수 있다는 점을 주의해야 한다. 속성보다 지역 변수를 사용하면, 타입 정제를 믿을 수 있다.
+```
+
+- 타입스크립트에서 별칭은 `신중하게 사용되어야 한다`.
+  - 그래야 코드를 잘 이해할 수 있고, 오류도 쉽게 찾을 수 있다.
+
+<br />
+
+> 잘못된 예시
+
+```ts
+interface Coordinate {
+  x: number;
+  y: number;
+}
+interface BoundingBox {
+  x: [number, number];
+  y: [number, number];
+}
+interface Polygon {
+  exterior: Coordinate[];
+  holes: Coordinate[][];
+  bbox?: BoundingBox;
+}
+
+function isPointInPolygon(polygon: Polygon, pt: Coordinate) {
+  const box = polygon.bbox;
+  if (polygon.bbox) {
+    if (pt.x < box.x[0]) {
+      // 객체가 'undefined'일 수 있습니다.
+    }
+  }
+}
+```
+
+- polygon.bbox를 별도의 box라는 별칭을 만들었기 때문에 제어 흐름 분석을 방해
+
+```ts
+function isPointInPolygon(polygon: Polygon, pt: Coordinate) {
+  const box = polygon.bbox;
+  if (box) {
+    if (pt.x < box.x[0]) {
+      // 정상
+    }
+  }
+}
+```
+
+- 에러는 해결했지만 box와 bbox는 같은 값인데 다른 이름을 사용하여 코드를 읽는 사람에게 문제가 될 수 있다.
+
+<br />
+<br />
+
+---
+
+<br />
+
+## 객체 비구조화를 이용하면 보다 간결한 문법으로 일관된 이름을 사용할 수 있다.
+
+<br />
+
+> 옳바은 예시
+
+```ts
+function isPointInPolygon(polygon: Polygon, pt: Coordinate) {
+  const { bbox } = polygon;
+  if (bbox) {
+    const { x, y } = bbox;
+    if (pt.x < x[0]) {
+      // 정상
+    }
+  }
+}
+```
