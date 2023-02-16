@@ -68,9 +68,10 @@ const bestPaid = _(allPlayers)
 <br />
 <br />
 
-# 아이템 27 `유효한 상태만 표현하는 타입을 지향하기`
+# 아이템 28 `유효한 상태만 표현하는 타입을 지향하기`
 
 - 효과적으로 타입을 설계하기 위해선, `유효한 상태만 표현할 수 있는 타입을 만들어 내는 것이 가장 중요하다.`
+  - 타입 설계를 명확하게함으로써 예상치 못한 버그가 숨어들 여지를 줄일 수 있다.
 
 <br />
 <br />
@@ -98,4 +99,83 @@ function renderPage(state: State) {
 <br />
 <br />
 
-...
+> 옳바른 타입 설계
+
+```ts
+// 코드의 길이는 많이 길어졌지만, 무효한 상태를 허용하지 않도록 모델링 되었다.
+interface RequestPending {
+  state: "pending";
+}
+interface RequestError {
+  state: "error";
+  error: "string";
+}
+interface RequestSuccess {
+  state: "ok";
+  pageText: string;
+}
+type RequestState = RequestPending | RequestError | RequestSuccess;
+
+interface State {
+  currentPage: string;
+  requests: { [page: string]: RequestState };
+}
+
+//랜딩 페이지 구현
+function renderPage(state: State) {
+  const { currentPage } = state;
+  const requestState = state.requests[currentPage];
+  switch (requestState.state) {
+    case "pending":
+      return `Loding ${currentPage}...`;
+    case "error":
+      return `Error!`;
+    case "ok":
+      return `ok`;
+  }
+}
+//changePage
+async function changePage(state: State, newPage: string) {
+  state.requests[newPage] = { state: "pending" };
+  state.currentPage = newPage;
+}
+```
+
+<br />
+<br />
+
+## 상태를 표현하는 타입을 만들때는 유효한 타입만을 가지고 있어야 한다
+
+> 위 예시
+
+```ts
+// 지향 해야 하는 방식 Bad!!
+//
+interface State {
+  one: number;
+  two: number;
+  three?: number;
+  four?: number;
+}
+
+// 옳바른 방식 Good!!
+//
+interface State1 {
+  one: number;
+  two: number;
+}
+
+interface State2 {
+  one: number;
+  two: number;
+  three: number;
+}
+
+interface State3 {
+  one: number;
+  two: number;
+  four: number;
+}
+
+type State = State1 | State2 | State3;
+```
