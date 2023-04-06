@@ -157,3 +157,91 @@ git branch -d exp
   - `git reset --hard` : working directory, index , repository
   - `git reset -- mixed` : index, repository만 반영
   - `git reset --soft` : repository만 반영
+
+<br />
+<br />
+
+# git 원격 저장소
+
+- `git commit --amend` : commit message를 변경하는 명령어
+
+- pull va fetch
+  - `pull` : 원격 저장소의 최신 버전을` 지역 저장소에 반영하는 것`
+  - `fetch` : 원격 저장소에 최신 버전을 가져오지만 `지역 저장소에 반영하지는 않는 것`
+    - 원격 저장소와 지역 저장소의 버전끼리의 차이점을 알기 편하다.
+    - 위 git 명령어 `git diff HEAD origin/main`
+      - 차이점 확인 후 병합 : git merge origin/main
+
+<br />
+<br />
+
+## git tag (light weight tag)
+
+```
+✅ branch와 TAG는 비슷하다.
+✅ TAG는 commit_id / branch는 checkout한 branch의 최신 commit_id를 가리키는 것만 다르다.
+```
+
+<br />
+
+- TAG는 특정 COMMIT의 아이디만 가르킨다.
+
+- commit에 대한 이름 생성하기
+- ![image](../image/G13.png)
+  - 제일 최신의 commit를 1.0.0 태그 붙임
+  - git tag [테그 이름] [branch이름]
+  - ![image](../image/g14.png)
+    - TAG가 붙여진 상태
+
+<br />
+
+## TAG를 통해 특정 commit으로 돌아가기 (light weight tag)
+
+> - git checkout [TAG이름]<br />
+> - git checkout 1.0.0 - 특정 버전으로 돌아가기 <br />
+> - git checkout main - 원래 최신 버전으로 돌아가기
+
+<br />
+
+## 자세한 정보를 추가할 수 있는 TAG (annotated tag)
+
+- TAG에 대한 자세한 설명을 추가하고 싶을 때 사용하는 테그 annotated tag
+- `git tag -v [TAG 이름]` : TAG에 대한 설명을 볼 수 있다.
+
+```bash
+# git tag -a [TAG이름] -m [테그에 대한 설명]
+git tag -a 1.1.0 -m "bug fix"
+```
+
+<br />
+<br />
+
+## 로컬 저장소에서 만든 TAG를 원격 저장소에 push하고 싶을때의 명령어
+
+- `git push origin --tags`
+  - `git push origin [태그명]`
+  - `git push origin [localbranch] --tags`
+- ![image](../image/g15.png)
+  - TAG를 원격 저장소에 반영한 모습
+
+<br />
+<br />
+
+# Git - Rebase(merge의 기능 중 하나)
+
+- merge : 작업 목록이 병렬로 나열
+- rebase : 작업 목록이 일렬로 나열
+  - git rebase master
+    - ![image](../image/g16.png)
+  - git merge rb
+    - ![image](../image/g17.png)
+
+<br />
+
+# Git flow
+
+- master : release버전만 모아두는 branch
+- develop : 개발 진행, 애매한 기능들은 develop에서 개발
+- hotfixed : 긴급하게 수정 해야 할 사항
+- release : 배포 , 릴리즈할 때 master branch에 병합
+- feature : 기능을 추가 진행, `기능 개발 끝내면 -> develop으로 병합`
