@@ -12,7 +12,7 @@ Pack + bucket의 합성어로 네트워크에서  출발지와 목적지간에 �
   - `IP 패킷의 정보`
     - 출발지 IP
     - 목적지 IP
-    - ![image](../image/I1.png)
+    - ![image](../../image/i1.png)
       - 여러 노드들을 거치며, 메세지를 IP(200.200.200.2)주소로 전달한다.
 
 <br />
@@ -31,9 +31,9 @@ Pack + bucket의 합성어로 네트워크에서  출발지와 목적지간에 �
 <br />
 
 - > 패킷의 전송 순서를 보장 할 수 없다.
-- ![image](../image/I2.png)
+- ![image](../../image/i2.png)
 - > 패킷이 소설 될 수 있다.
-- ![image](../image/I3.png)
+- ![image](../../image/i3.png)
 
 <br />
 <br />
@@ -59,7 +59,7 @@ Pack + bucket의 합성어로 네트워크에서  출발지와 목적지간에 �
 
 ## 연결 지향 (TCP 3way handshake) 1 中 TCP / UDP
 
-![image](../image/I4.png)
+![image](../../image/i4.png)
 
 ```
 [클라인언트] --syn(연결 요청)--> [서버]
@@ -74,7 +74,7 @@ Pack + bucket의 합성어로 네트워크에서  출발지와 목적지간에 �
 
 ## 데이터 전달 보증 1 中 TCP / UDP
 
-![image](../image/I5.png)
+![image](../../image/i5.png)
 
 - 서버에서 데이터를 전달 받았다면, 클라이언트에게 알려줌
 
@@ -83,7 +83,7 @@ Pack + bucket의 합성어로 네트워크에서  출발지와 목적지간에 �
 
 ## 순서 보장 1 中 TCP / UDP
 
-![image](../image/I7.png)
+![image](../../image/i7.png)
 
 <br />
 <br />
@@ -123,7 +123,7 @@ IP과 거의 같고, + PORT + CHECKSUM 만 추가 됨
 - 전화번호 부
 - 도메인 명을 IP 주소로 변환하는 것
 - 쉽게 도식화
-  - ![image](../image/I9.png)
+  - ![image](../../image/i9.png)
   - 도메인 서버를 거쳐서 ip주소를 받은 후 서버로 접속
 
 <br />
@@ -223,7 +223,7 @@ Content-Length: 3423
 
 - `클라이언트는 서버에 요청을 보내고 응답을 받을 때 까지 기다린다.`
 - `응답을 받으면 클라이언트가 동작을 한다.`
-- ![image](../image/I11.png)
+- ![image](../../image/i11.png)
   - 비지니스 로직과 데이터를 `서버`에 몰아넣고 `클라이언트`는 UI와 사용성 집중할 수 있게 도와준다.
   - `클라이언트 - 서버 구조`를 만들게 되면, 양쪽이 독립적으로 진화 할 수 있다는 장점이 있음
 
@@ -240,7 +240,7 @@ HTTP는 무상태 프로토콜(stateless)을 지향한다.
   - 서버가 `클라이언트의 상태를 보존하지 않는다.`
   - 갑자기 클라이언트 요청이 증가해도 서버를 대거 투입할 수 있다.
   - 응답서버를 쉽게 바꿀 수 있어, 무한한 서버 증설이 가능하다.
-  - ![image](../image/I12.png)
+  - ![image](../../image/i12.png)
     - `Scale-up`에 용의 하다.
     - 애플리케이션 설계에는 최대한 stateless를 사용하고, 로그인 같은 경우에만 statefull를 사용한다.
 
@@ -255,7 +255,7 @@ HTTP는 무상태 프로토콜(stateless)을 지향한다.
 - `HTTP 비연결성의 단점`
   - 요청 마다 연결을 유지 하지 않기 때문에, `3-way-handshake`를 다시 맺어야 한다.
   - 위 단점은 HTTP 지속 연결로 해결 가능하다. (`Presistent-Connections`)
-  - ![image](../image/i14.png)
+  - ![image](../../image/i14.png)
     - html 페이지를 받을 때 까진 지속연결을 유지한다.
 
 <br />
