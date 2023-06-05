@@ -270,6 +270,50 @@ return {appointments,monthYear,...}
 
 # Select (데이터 변환) , preFetching 옵션은 아님
 
+```
+useQuery를 통해 받아오는 data를, 원하는 형식에 맞게 transform 해주는 기능. useQuery의 3번째 인자인 options 객체에 입력한다.
+
+React-query의 최적화 (memoization)
+
+Select function은 데이터뿐만 아니라 함수 모두가 변경되었을 경우에만 실행하게 만드는 함수이다.
+select function이 변경되지 않는다면 재실행하지 않게 만들어 최적화한다.
+select function에는 자주 바뀌지 않는 stable function이 들어가야 한다.
+
+만약 익명 함수를 안정적인 함수로 만들고 싶을 때에는 select function과 같이 useCallback을 사용하여 최적화한다.
+```
+
+```ts
+export function useStaff(): UseStaff {
+  const [filter, setFilter] = useState("all");
+
+  const selectFn = useCallback(
+    (unfilteredStaff) => filterByTreatment(unfilteredStaff, filter),
+    [filter]
+  );
+
+  const fallback = [];
+  const { data: staff = fallback } = useQuery(queryKeys.staff, getStaff, {
+    select: filter !== "all" ? selectFn : undefined,
+  });
+
+  return { staff, filter, setFilter };
+}
+
+export function filterByTreatment(
+  staff: Staff[],
+  treatmentName: string
+): Staff[] {
+  return staff.filter((person) =>
+    person.treatmentNames
+      .map((t) => t.toLowerCase())
+      .includes(treatmentName.toLowerCase())
+  );
+}
+```
+
+<br />
+<br />
+
 - `Select`를 사용하면 쿼리 함수가 반환하는 데이터를 변환 할 수 있다.
 - React-Query는 Select 함수를 `삼중 등호`로 비교하며, `Select함수`는 `데이터`와 `함수`가 모두 변경되었을 경우에만 실행된다.
 - `마지막으로 검색한 데이터와 동일한 데이터`이고, Select 함수에도 변동이 없으면 Select함수를 재실행하지 않는 것이 `React Query최적화` 이다.
@@ -277,7 +321,7 @@ return {appointments,monthYear,...}
 <br />
 <br />
 
-> Select 예시 11
+> Select 예시 1
 
 ```jsx
 //셀렉트 함수 (익명함수라서 변경됨, 최적화를 위해 useCallback)
@@ -307,7 +351,7 @@ const { data: appointments = fallback } = useQuery(
 <br />
 <br />
 
-> Select 예시 22
+> Select 예시 2
 
 ```js
 // Select함수의 필터 함수
@@ -338,4 +382,90 @@ export function useStaff(): UseStaff {
 
   return { staff, filter, setFilter };
 }
+```
+
+<br />
+<br />
+
+# Refetching
+
+- 서버가 만료데이터를 업데이트 한다.
+- 일정 시간이 지나면 서가 만려된 데이터를 삭제한다.
+  - `이런 리페칭은 페지를 벗어났다가 다시 돌아왔을 때 볼 수 있다.`
+  - `창을 재포커스 할 때마다 데이터를 가져온다.`
+- `stale-query`는 어떤 조건 하에서 자동적으로 다시 가져오기가 된다.
+  - `refetchOnMount` - 기본값 : true
+    - 데이터가 `stale 상태`일 경우 마운트 시 마다 refetch 하는 옵션
+  - `refetchOnWindiwFocus` - 기본값 : true
+    - 데이터가 `stale 상태`일 경우 윈도우 포커싱 될 때마다 refetch를 실행하는 옵션이다.
+  - `refetchOnReconnect` - 기본값 : true
+    - 데이터가 `stale 상태`일 경우재 연결될 때마다 refetch하는 옵션이다.
+  - `refetchInterval`
+
+<br />
+
+> 리페칭 옵션 업데이트 얘시
+
+```tsx
+// axios 요청ㄴ
+async function getTreatments(): Promise<treatment[]> {
+  const { data } = await axiosInstance.get("/treatments");
+  return data;
+}
+
+//useQuery 부분
+export function useTreatments(): Treatment[] {
+  const fallback = [];
+  const { data = fallback } = useQuery(queryKeys.treatments, getTreatments, {
+    //useQuery 욥션 만료된 데이터를 불러오는 동안 캐싱에 백업된 내용이 보여진다.
+    staleTime: 600000,
+    cacheTime: 900000,
+    //리페칭 제한 옵션
+    refetchOnMount: false,
+    refetchOnwindowFocus: false,
+    refetchOnReconnect: false,
+  });
+}
+```
+
+<br />
+<br />
+
+- `리페칭 옵션을 쿼리 전역에 적용하기`
+  - 각각의 쿼리 옵션으로 오버라이드 가능
+
+```ts
+// react-query > queryClient.ts
+// 네트워크 호출에 보수적인 설정
+// 대부분의 쿼리에서 리페칭을 할 만큼 데이터 변경이 충분치 않다.
+export const queryclient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      onError: queryErrorHandler,
+      staleTime: 600000,
+      cacheTime: 900000,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+// react-query > queryClient.ts
+// 네트워크 호출에 적극적인 설정
+// 대부분의 쿼리에서 리페칭을 할만큼 데이터 변경이 충분함
+export const queryclient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      onError: queryErrorHandler,
+      staleTime: 0,
+      cacheTime: 300000,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+      refetchOnWindowFocus: true,
+      //1초마다 다시 데이터를 가져와 클라이언트 페이지에 다시 랜더링 되는 설정
+      refetchInterval: 1000,
+    },
+  },
+});
 ```

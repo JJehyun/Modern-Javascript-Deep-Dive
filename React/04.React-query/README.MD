@@ -47,6 +47,29 @@ return (
 <br />
 <br />
 
+## useQuery , enabled
+
+- `enabled` (boolean)
+  - `enabled` : 쿼리가 자동으로 실행되지 않게하는 옵션
+
+<br />
+
+> enabled 옵션 설명
+
+```ts
+import { useQuery } from "react-query";
+// 주로 사용되는 3가지 return 값 외에도 더 많은 return 값들이 있다.
+const { data, isLoading, error } = useQuery(queryKey, queryFn, options);
+
+// id가 존재할 때만 쿼리 요청을 한다는 의미의 코드
+const { data } = useQuery(["todos", id], () => fetchTodoById(id), {
+  enabled: !!id,
+});
+```
+
+<br />
+<br />
+
 ## StaleTime vs cacheTime 🎯💡🔥📌✅
 
 ```
@@ -61,12 +84,16 @@ return (
 <br />
 
 - stale Time : 데이터를 허용하는 `최대 나이` (`리페칭할 때 고려사항`)
+  - `fresh 상태`로 유지되는 시간, 해당 시간이 지나면, stale상태가 된다.
+    - `fresh`상태에서는 쿼리가 다시 mount되어도 fetch가 실행되지 않는다.ㄴ
   - 데이터가 만료됐다고 판단하기 전까지 허용하는 시간
   - 기본값은 : `0`
 
 <br />
 
 - cacheTime : cacheTime 지나면 캐시의 데이터가 만료되며, 유효 시간의 기본값은 5분이다.
+  - `cacheTime`은 `inactive` 상태인 캐시 데이터가 메모리에 남아 있는 시간이다.
+    - 이 시간이 지나면, 가바지 컬렉터에 의해 메모리에서 제거 된다.
   - 특정 쿼리에 대한 useQuery가 활성화된 후 경과한 시간
   - 캐시가 만료되면, 가비지 컬렉션이 실행되고 클라이언트는 데이터를 사용할 수 없다.
 
