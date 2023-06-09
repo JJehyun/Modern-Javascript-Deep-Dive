@@ -1,7 +1,7 @@
 # 리액트쿼리 정리 (3)🎯💡🔥📌✅
 
 - `queryClient.setQueryData`
-  - 쿼리 키와 값을 가져와 쿼리 캐시에 해당 키에 대한 값을 설정 할 수 있다.
+  - 쿼리 키와 값을 가져와 쿼리 캐시에 해당 키에 대한 값을 직접 설정 할 수 있다.
   - `쿼리 함수 없이 직접 설정`
 
 <br />
@@ -21,6 +21,46 @@ setQueryData와 fetchQuery의 차이점은, setQueryData는 동기화이며 이�
 데이터를 비동기적으로 가져와야 하는 경우 쿼리 키를 다시 가져오거나 fetchQuery를 사용하여 비동기로 처리하는 것이 좋다.
 ```
 
+<br />
+<br />
+<br />
+
+> `invalidateQuery` vs `setQueryData`
+
+```js
+//invalidateQuery
+//mutate애 의한 피드백으로 서버와 클라이언트가 같은 버전의 데이터를 가질 수 있다.
+//데이터가 많아지면, api호출이 다시 이루어지므로 사용자 경험을 해칠 수 있다.
+const { mutate: bookmarkMutate } = useMutation({
+  mutationFn: () => postsApi.bookmark(postId),
+  onSuccess: () => {
+    queryClient.invalidateQueries(["Allposts"]);
+  },
+});
+
+//VS
+//setQueryData
+//서버와 클라이언트가 동시에 같은 버전의 데이터를 가지는 것은 아님
+//쿼리 데이터를 수동으로 설정한다.
+//다음 네트워크 요청을 기다리지 않아도 되어서 사용자 경험이 좋다
+
+const { mutate: bookmarkMutate } = useMutation({
+  mutationFn: () => postsApi.bookmark(postId),
+  onSuccess: () => {
+    const allPosts = queryClient.getQueryData(["Allposts"]);
+    const post = allPosts.filter((e) => e.postId === postId)[0];
+
+    queryClient.setQueryData(
+      ["Allposts"],
+      allPosts.map((e) =>
+        e === post ? { ...post, bookmark: !post.bookmark } : e
+      )
+    );
+  },
+});
+```
+
+<br />
 <br />
 
 > auth query
@@ -313,13 +353,112 @@ export function usePatchUser(): (newData: User | null) => void {
       patchUserOnServer(newUserData, user),
         // 서버에서 받은 응답으로 사용자를 업데이트
         // onSuccess는 변이 함수 부분에서 반환된 return을 인자로 받는다.
-        // returnData : 변이 함수 실행 결과의 return 응답 데이터
+        // returnData : 변이 함수 실행 결과의 return 응답  데이터
         {
           onSuccess: (returnData) => updateUser(returnData),
+          toast({"유저가 업데이트 되었습니다."})
         };
     }
   );
-
   return patchUser;
 }
+```
+
+<br />
+<br />
+<br />
+
+# (Optimistic Updates) 낙관적 업데이트
+
+## 낙관적 업데이트란?
+
+- `서버로 부터 응답을 받기 전에 사용자 캐시를 업데이트 하는 것`
+- 캐시를 더 빨리 업데이트 한다는 장점이 있다.
+  - 캐시를 업데이트 하기 위해 서버 응답을 기다릴 필요없다.
+- `단점은 서버 업데이트가 실패한 경우 코드가 더 복잡해 진다.`
+
+  - 이 경우 업데이트 이전의 데이터로 되돌려야 한다.
+  - 해당 데이터를 저장해 두어야 한다.
+
+<br />
+<br />
+
+```
+✅ 사용자 업데이트 트리거
+
+✅ mutate 호출 트리거
+  - 변이 함수가 실행되서 업데이트 서버로 전송
+  - onMutate 콜백 실행되어 몇 가지 작업 수행
+    - 서버에서 오는 데이터가 낙관적 업데이트를 훼손하지 않도록 진행 중 쿼리 취소
+    - 쿼리 캐시를 낙관적으로 업데이트
+    - 이전 캐쉬 값을 onMutate 핸들러에서 반환된 콘텍스트로 저장한다.
+
+✅ Success 발생 - 서버에서 최신 데이터를 가져올 수 있도록 쿼리를 무효화한다.
+
+✅ Error 발생 - onError 콜백 실행 (onMutate에서 반환된 콘텍스트를 사용)
+            - 콘텍스트를 사용해서 캐시를 낙관적 업데이트를 하기 전 상태로 되돌리기 위해 onError 콜백 작성
+```
+
+<br />
+<br />
+<br />
+
+# useQuery 예시
+
+```js
+import { QueryFunction, QueryKey, useInfiniteQuery } from 'react-query';
+interface UseItShowsParams {
+  enabled?: boolean;
+  sort?: `${keyof ItShow}:${'asc' | 'desc'}`;
+  search?: string;
+  size?: number;
+  own?: boolean;
+}
+
+type ResponseType = Response<ItShow[]>;
+//쿼리 키
+const queryKey = (params?: UseItShowsParams): QueryKey => ['itshows', params];
+//쿼라 험수
+const queryFn = (params?: UseItShowsParams): QueryFunction<ResponseType> => {
+  const { size, ...serverParams } = params || {};
+  return async ({ pageParam }) => {
+    const { data } = await API.get<Response<ItShow[]>>('/it-shows', {
+      params: {
+        ...serverParams,
+        'pagination[page]': pageParam?.page ?? 1,
+        'pagination[pageSize]': size ?? pageParam?.pageSize ?? 25,
+      },
+    });
+    return data;
+  };
+};
+//커스텀 훅
+export const useItshows = (params?: UseItShowsParams) => {
+  const { enabled = true, ...serverParams } = params || {};
+  const query = useInfiniteQuery(
+    queryKey(serverParams),
+    queryFn(serverParams),
+    {
+      getNextPageParam: (lastPage) => {
+        const { pagination } = lastPage.meta;
+        const { page, pageCount } = pagination;
+        if (page >= pageCount) return undefined;
+        return { ...pagination, page: page + 1 };
+      },
+      enabled: enabled,
+    },
+  );
+
+  const itshows = useMemo(
+    () => query.data?.pages?.flatMap((page) => page?.data ?? []),
+    [query.data],
+  );
+
+  const pagination = useMemo(
+    () => query.data?.pages?.slice(-1)?.[0]?.meta?.pagination,
+    [query.data],
+  );
+
+  return { ...query, itshows, pagination };
+};
 ```

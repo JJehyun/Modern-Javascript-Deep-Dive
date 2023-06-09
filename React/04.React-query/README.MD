@@ -1,4 +1,4 @@
-# 리액트쿼리 정리 (1)
+# 리액트쿼리 정리 (1) 🎯💡🔥📌✅
 
 <br />
 <br />
@@ -212,6 +212,80 @@ return (
 <br />
 
 # useInfiniteQuery
+
+📌 react-infinite-scroller
+
+- 이라이브러리에서 제공하는 컴포넌트 InfiniteScroll은 useInfiniteQuery와 호환성이 좋다
+  - InfiniteScroll
+  - `2가지`의 `프로퍼티`를 가진다.
+    - `loadMore` : 더 불러올 데이터 연결
+      - `loadMore={fetchNextPage}`
+    - `hasMore` : 더 불러올 데이터가 있는 지 확인
+      - `hasMore={hasNextPage}`
+
+📌 양방향 스크롤 : Bi-dirextional Scrolling
+
+- 데이터 중간부터 시작할 때 유용 (시작 전, 후 데이터를 가져옴)
+- `next,prev메서드 사용`
+
+<br />
+<br />
+
+> 위 예제 예시
+
+```js
+// data는 data.pages 배열에 객체 원소 형태로 존재
+// 1page.. 2page 등이 또 배열이므로 map을 2번 써야  한다
+<InfiniteScroll loadMore={() => fetchNextPage()} hasMore={hasNextPage}>
+  {data.pages.map((pageData) =>
+    pageData.results.map(({ name, hair_color, eye_color }: PersonType) => {
+      return (
+        <Person
+          key={name}
+          name={name}
+          hairColor={hair_color}
+          eyeColor={eye_color}
+        />
+      );
+    })
+  )}
+</InfiniteScroll>
+```
+
+<br />
+<br />
+
+📌 useInfiniteQuery hooks
+
+> 대표 예제
+
+```js
+const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
+  queryKey: ["sw-people"],
+  queryFn: ({ pageParam = initialUrl }) => fetchUrl(pageParam),
+  getNextPageParam: (lastPage) => lastPage.next || undefined,
+});
+```
+
+- 1️⃣ data
+- 2️⃣ fetchNextPage : 더 많은 데이터가 필요할 때 실행할 쿼리 함수
+- 3️⃣ hasNextPage : `수집할 데이터가 있는지 없는지를 따지는 불린값` , getNextPageParam이 undefined를 반환하면 true -> false 로 바뀜
+- 4️⃣ pageParam :
+  - `fetchNextPage가 어떻게 보일지를 결정 (다음 페이지가 있는지 결정)`
+  - 기본값(infiniteUrl = 탐색 시작할 API 기본 주소)을 부여
+- 5️⃣ getNextPage
+  - lastPage를 인수로 갖는 함수
+  - 옵션으로 allPage 인수를 가질 수도 있다
+  - fetchNextPage가 실행되면 lastPage.next 프로퍼티를 따라 마지막 페이지에 도착
+  - 마지막 페이지에 해당(더이상 next 프로퍼티가 없을 때)하면 undefined를 반환
+
+<br />
+<br />
+
+---
+
+<br />
+<br />
 
 - 두개의 프로퍼티를 가진다.
 

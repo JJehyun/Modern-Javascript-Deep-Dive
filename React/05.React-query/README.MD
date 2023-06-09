@@ -55,8 +55,6 @@ export function useTreatments(): Treatment[] {
 
 ---
 
----
-
 <br />
 <br />
 <br />
@@ -102,8 +100,6 @@ export function Loading(): ReactElement {
   );
 }
 ```
-
----
 
 ---
 
@@ -191,10 +187,6 @@ export function usePrefetchTreatments(): void {
 //usePrefetchTreatments() 훅 사용 시 프리패칭
 ```
 
----
-
----
-
 <br />
 <br />
 <br />
@@ -256,8 +248,6 @@ return {appointments,monthYear,...}
 ```
 - 의존성 배열에 공통 접두사가 있으면 한 번애 모두 무효화 할 수 있다.
 ```
-
----
 
 ---
 
