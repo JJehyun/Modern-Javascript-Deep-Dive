@@ -2,6 +2,8 @@
 
 ## EC2 Free Tier 시작 (1)
 
+> 실수로 프론트 코드 폴더 : frontend 백엔드 코드 : `backand` 이 부분 실수
+
 - FreeTier (Amazon Linux)
   - EC2 (t2.micro) : OS
   - Gib 30 / gp2 : Storage
@@ -253,4 +255,129 @@ systemctl restart nginx
 echo "0 0,12 * * * root python -c 'import random; import time; time.sleep(random.random() * 3600)' && certbot renew" | sudo tee -a /etc/crontab > /dev/null
 
 cat /etc/crontab
+```
+
+<br />
+<br />
+
+# CI/CD 구성하기 (배포 자동화) (5)
+
+## .github/workflows/deploy-main.yml 파일 생성
+
+- main branch에서 push 이벤트 실행 시 아래 job 실행
+- `ssh 접속`이 완료되면, 접속한 home 디렉토리에 있는 /.deploy라는 script 실행
+
+```bash
+# .github/workflows/deploy-main.yml 에
+# 아래 코드 삽입
+name: remote ssh command for deploy
+on:
+ push:
+   branches: [main]
+jobs:
+ build:
+   name: Build
+   runs-on: ubuntu-latest
+   steps:
+     - name: executing remote ssh commands using key
+       uses: appleboy/ssh-action@master
+       with:
+         host: ${{ secrets.HOST }}
+         username: ${{ secrets.USERNAME }}
+         key: ${{ secrets.KEY }}
+         port: ${{ secrets.PORT }}
+         script: |
+           ./deploy.sh
+```
+
+<br />
+
+## git Secrets 파일 생성
+
+- setting -> Secrets and Variables -> Actions - New repository secret
+  - Name , Value 설정
+  - 에서 HOST / USERNAME / KEY / PORT 등등 생성
+    - HOST : 프론트 주소
+    - KEY : ssh 접속 .pem 파일
+    - PORT : 22
+    - USERNAME : ec2-user (ec2 접속 아이디)
+
+<br />
+
+## EC2 서버에 deploy.sh 파일 생성
+
+> 서버에 접속하지 않고 Github Actions 설정으로 저장소의 main 브랜치가 변경될 때마다 서버에 최신 버전을 받아 자동 빌드하고 재시작
+
+- vi ~/deploy.sh (홈 디렉토리에 deploy.sh 파일 생성) 후 아래 파일 생성
+- 아래코드 삽입(:wq) 후 `chmod +x ~/deploy.sh` 권한 추가
+- 권한이 잘 부여됐다면 ls -altr 했을 때 초록색으로 보이게 된다.
+
+```bash
+#!/bin/bash
+# 환경 변수 적용
+source ~/.bash_profile
+# 프론트코드로 이동 후 pull and build
+cd ~/git/backfront/
+git pull origin main
+cd frontend/
+npm i
+npm run build
+# backend public 폴더로 build 파일 이동 시킴 후 백엔드 라이브러리 설치
+cp -rf dist/* ../backand/public
+cd ../backand/
+npm i
+# pm2 재실행 (백엔드 상에서)
+pm2 stop web
+pm2 start bin/www --name web --update-env
+sleep 2
+pm2 list
+```
+
+<br />
+
+## 마지막 CORS 설정 (6) (express.js 기준)
+
+> 도메인을 origin이라고 표현, 도메인이 달라질 경우 보안 때문에 정보를 주고 받는 규칙이 생기게 된다. 이것이 CORS 규칙
+
+```
+도메인이 달라질 때 발생하는 이슈가 CORS이다. Cross Origin Resource Sharing을 뜻한다.
+프론트엔드는 3000번 포트를 사용하고, 백엔드는 4000번 포트를 사용하기 때문에 API를
+호출할 때 http://localhost:4000/api/hello 주소를 사용한다. 만약 /api/hello URI와 같이,
+도메인을 사용한다면 발생하지 않는다
+```
+
+- backend root 폴더에서 npm i -S cors 설치
+- backend/app.js에서 아래 코드 추가
+  - cors 설정 끝
+
+```js
+//..
+//app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
+
+var cors = require("cors");
+app.use(cors());
+
+//view engine setup
+//..
+```
+
+<br />
+
+- 위처럼 설정한다면 실서버에서 localhost부분을 없애야한다.
+- .env.local 파일을 생성 (프론트엔드)
+  - 빌드도구는 vite를 사용하기 때문에 vite 환경변수를 설정해준다.
+
+```bash
+# 로컬의 환경 변수 설정
+# .env.local (로컬에서 - frontend) 적용 코드
+VITE_API_SERVER=http://localhost:4000
+
+# .env (실서버에서 - feontend) 적용 코드
+# cd frontend / vi .env
+# ~/deploy.sh : 홈에서 deploy파일 이용해서 빌드 후 배포
+VITE_API_SERVER=
+
+
+# 다른 파일에서 환경 변수 불러오기
+import.meta.env.VITE_API_SERVER
 ```
