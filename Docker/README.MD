@@ -22,3 +22,6 @@ docker run -d -p 5000:8080 -v /usr/src/app/node_modules -v $(pwd):/usr/src/app <
 | 01   | 도커 이미지 만들기                                                      |
 | 02   | Docker Volumn , 도커 로컬 코드 참조 (코드 변경 시 바로 반영)            |
 | 03   | docker compose (여러 컨테이너 끼리의 간편한 네트워크 통신) , docker.yml |
+| 04   | docker VOLUME / compose 이용해서 배포                                   |
+| 05   | ElasticBeanstic 초기 세텅 - travis-ci 연동, role 추가 및 에러 핸들링    |
+| 06   | ElasticBeanstic react 간단 배포하는 방법                                |
