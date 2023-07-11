@@ -237,3 +237,184 @@ server {
 
 5. AWS EB에서 DockerHub에 있는 이미지를 가져온 후에 배포를 진행
 ```
+
+<br />
+<br />
+
+## travis.yml ci 코드 작성 (1)
+
+```yml
+language: generic
+
+sudo: required
+
+# 도커 환경임
+services:
+  - docker
+# 도커 이미지 생성
+before_install:
+  - docker build -t jjehyun/react-test-app -f ./frontend/Dockerfile.dev ./frontend
+# 위에서 만든 이미지를 통해 테스트 진행
+script:
+  - docker run -e CI=true jjehyun/react-test-app npm run test
+
+## 테스트가 성공했다면, 하나하나의 프로젝트의 운영버전 이미지를 빌드(생성)하는 설정하기
+after_success:
+  - docker build -t jjehyun/docker-frontend ./frontend
+  - docker build -t jjehyun/docker-backend ./backend
+  - docker build -t jjehyun/docker-nginx ./nginx
+  # 도커허브에 생성한 이미지를 넣어주어야함, 도커 허브에 로그인하는 코드 (DOCKER_HUB_PASSWORD,DOCKER_HUB_ID travis-ci에서 설정 값)
+  - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_ID" --password-stdin
+  # 생성된 도거 이미지를 하나씩 도커 허브에 push
+  - docker push jjehyun/docker-frontend
+  - docker push jjehyun/docker-backend
+  - docker push jjehyun/docker-nginx
+
+deploy:
+  provider: elasticbeanstalk
+  region: "us-east-2"
+  app: "dockerFull"
+  env: "DockerFull-env"
+  #S3이름
+  bucket_name: elasticbeanstalk-us-east-2-773778816275
+  bucket_path: "dockerFull"
+  on:
+    branch: master
+
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_ACCESS_KEY
+```
+
+<br />
+<br />
+
+## Dockerrun.aws.json
+
+- ![image](../../image/d68.png)
+
+> dockerfile이 많은 멀티 프로그림에서 사용
+
+> 어떻게 다중 컨테이너를 작동 시킬지 알려준다.
+
+```bash
+# Dockerrun.aws.json
+# 설명
+{
+    # hostname이름을 통해 컨테이너간의 소통이 가능하다.
+    # 버전 명시
+    # essential : true면 다른 작업도 중지
+    "AWSEBDockerrunVersion":2,
+    # 이안에 컨테이너를 정의해준다 (프론트,백,db,nginx)
+    "containerDefinitions":{
+        "name":"frontend",
+        # 구축할 온라인 Docker리포지토리의 Docker이미지 이름 도커에 올린 이미지 이름
+        "image":"jjehyun/docker-frontend",
+        "hostname":"frontend",
+        "essential":false,
+        "memory":128
+    },{
+        "name":"backend",
+        # 구축할 온라인 Docker리포지토리의 Docker이미지 이름 도커에 올린 이미지 이름
+        "image":"jjehyun/docker-backend",
+        "hostname":"backend",
+        "essential":false,
+        "memory":128
+    },{
+        "name":"nginx",
+        # 구축할 온라인 Docker리포지토리의 Docker이미지 이름 도커에 올린 이미지 이름
+        "image":"jjehyun/docker-nginx",
+        "hostname":"nginx",
+        "essential":true,
+        "memory":128,
+        "portMappings":[
+            {
+            "hostPort":80,
+            "containerPort":80
+            }
+        ],
+        # nginx와 frontend | backend 연결됨
+        "links":["frontend","backend"],
+        "memory":128
+    }
+}
+
+
+```
+
+<br />
+<br />
+
+## Elastic Beanstalk / RDS 한번에 환경 세팅 (2)
+
+- 애플리케이션 생성
+  - 환경 구성 : ✅ 웹 서버
+  - 플랫폼 : ✅ 64bit Amazon Linux 2
+    - `서비스 엑세스`
+      - 기존 역할 : ✅ aws-elasticbeanstalk-ec2-role
+      - EC2 인스턴스 프로파일 : aws-elasticbeanstalk-ec2-role
+        - `네트워킹, 데이터 베이스`
+          - 데이터 베이스 : - , mysql ,스토리지 5
+          - Virtual Private Cloud
+            - `인스턴스 트래픽 및 크기 조정..`
+            - 아키텍처 : t3.micro
+
+> Elastic Beanstalk 생성 완료
+
+> RDS 생성 완료
+
+<br />
+
+## VPC -> 보안 -> 보안그룹 -> 보안그룹 생성하기
+
+- ![image](../../image/d70.png)
+
+```
+- 인 바운드는 데이터 베이스에서 데이터를 가져오는 부분
+```
+
+<br />
+<br />
+
+- `보안 그룹 생성`
+  - 보안 그룹 이름 : DockerSecurityGroup
+  - 설명 : allow (도커안에 서비스 참조 가능)
+  - `세부 적인 선택 없이 보안그룹 생성 완료`
+- 그 후
+  - 리다이렉션 된 페이지에서 인바운드 규칙 편집 클릭
+  - ![image](../../image/d69.png)
+
+<br />
+<br />
+<br />
+
+## 위에서 만든 보안그룹을 EB | RDS에 적용하기 (3)
+
+- RDS
+
+  - 인스턴스 - 수정 - 즉시 수정
+  - ![image](../../image/d72.png)
+
+- Elastic Beanstic
+  - Elastic Beanstalk - 환경 - 구성 - 인스턴스 - 편접
+  - ![image](../../image/d73.png)
+
+<br />
+
+> RDS / EB 둘 다 DockerSecurityGroup 보안그룹 적용 완료
+
+> RDS / EB 보안 그룹을 서로 같게 해줌으로써 RDS / EB 서로 통신이 가능하게 됨
+
+<br />
+<br />
+
+## RDS 와 EB 환경 변수 적용 하기
+
+- ![image](../../image/d74.png)
+- ![image](../../image/d75.png)
+
+- Elastic Beanstalk 환경 변수
+  - 환경 - 구성 - 업데이트,모니터링 로깅 구성
+  - 환경 변수 추가
+    - ![image](../../image/d76.png)
+
+> RDS , EB 환경 변수 세팅 완료
