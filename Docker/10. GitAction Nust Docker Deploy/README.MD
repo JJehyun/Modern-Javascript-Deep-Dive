@@ -227,3 +227,5 @@ nohup ./run.sh &
 ![image](../../image/d91.png)
 
 > git hub runner 완성
+
+> push 마다 자동 배포
